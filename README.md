@@ -1,20 +1,32 @@
 # Local Ollama + Open WebUI
 
-A reproducible local AI stack using Ollama and Open WebUI.
+A reproducible local AI setup using **Ollama on the host machine** and **Open WebUI in Docker**.
 
-## What this repository provides
+## Architecture
 
-- Ollama as the local model server
-- Open WebUI as the browser interface
-- Docker Compose for repeatable setup
-- Persistent Docker volumes for models and WebUI data
+```text
+Browser
+   |
+   v
+Open WebUI :3015 (Docker)
+   |
+   | host.docker.internal:11434
+   v
+Ollama (macOS host)
+   |
+   v
+Local LLM models
+```
 
 ## Requirements
 
+- Ollama installed and running on the host machine
 - Docker Desktop
 - macOS, Linux, or Windows with Docker Desktop
 
 ## Start
+
+Clone the repository, then run:
 
 ```bash
 cp .env.example .env
@@ -23,17 +35,27 @@ docker compose up -d
 
 Open:
 
+```text
 http://localhost:3015
-
-## Download a model
-
-For example:
-
-```bash
-docker exec -it ollama ollama pull llama3.1:8b
 ```
 
-Then select `llama3.1:8b` in Open WebUI.
+The Compose configuration connects Open WebUI to Ollama through `host.docker.internal:11434`.
+
+## Verify Ollama
+
+On macOS/Linux:
+
+```bash
+ollama list
+```
+
+For example, to download the model used during development:
+
+```bash
+ollama pull llama3.1:8b
+```
+
+Then select the model in Open WebUI.
 
 ## Stop
 
@@ -41,30 +63,12 @@ Then select `llama3.1:8b` in Open WebUI.
 docker compose down
 ```
 
-The named Docker volumes remain intact, so models and WebUI data are preserved.
-
-## Architecture
-
-```text
-Browser
-   |
-   v
-Open WebUI :3015
-   |
-   | Ollama API :11434
-   v
-Ollama
-   |
-   v
-Local LLM models
-```
+Do **not** use `docker compose down -v` unless you intentionally want to remove the persistent Open WebUI volume.
 
 ## Important
 
-This repository intentionally does **not** contain downloaded model weights or Docker volumes. Those are large local runtime data and should not be committed to Git.
+This repository does **not** contain downloaded model weights, Ollama itself, Docker volumes, chats, or secrets. These remain local runtime data and should not be committed to Git.
 
 ## Public deployment
 
-The local stack is intended for development and local/private use. A public deployment needs a remotely reachable model/API backend; `localhost` and Docker host networking cannot be used by a cloud-hosted frontend to reach your Mac.
-
-For a free public demo, use a lightweight web frontend with a free/available inference API or a platform-supported inference backend rather than trying to host a full 8B Ollama model on free CPU infrastructure.
+This repository describes the local setup. A cloud deployment cannot use `localhost` or `host.docker.internal` to reach Ollama running on your Mac. A public version therefore needs a remotely reachable inference backend.
