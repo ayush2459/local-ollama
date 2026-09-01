@@ -7,7 +7,7 @@ services:
     environment:
       OLLAMA_KEEP_ALIVE: 24h
     command: >-
-      sh -c "ollama serve & pid=$$!; until ollama list >/dev/null 2>&1; do sleep 2; done; ollama pull llama3.1:8b; wait $$pid"
+      sh -c "ollama serve & pid=$$!; until ollama list >/dev/null 2>&1; do sleep 2; done; ollama pull llama3.2:1b; wait $$pid"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "ollama", "list"]
