@@ -1,35 +1,23 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    volumes:
-      - ollama:/root/.ollama
-    environment:
-      OLLAMA_KEEP_ALIVE: 24h
-    command: >-
-      sh -c "ollama serve & pid=$$!; until ollama list >/dev/null 2>&1; do sleep 2; done; ollama pull llama3.2:1b; wait $$pid"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-
   open-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:ollama
     container_name: open-webui
     ports:
       - "${OPEN_WEBUI_PORT:-3015}:8080"
     environment:
-      OLLAMA_BASE_URL: http://ollama:11434
+      USE_OLLAMA_DOCKER: "true"
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      OLLAMA_KEEP_ALIVE: 5m
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_CONTEXT_LENGTH: "2048"
       WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-}
     volumes:
       - open-webui:/app/backend/data
-    depends_on:
-      ollama:
-        condition: service_healthy
+      - ollama:/root/.ollama
     restart: unless-stopped
 
 volumes:
-  ollama:
   open-webui:
+  ollama:
