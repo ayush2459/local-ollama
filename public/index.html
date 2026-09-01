@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local Ollama — Public AI</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0b0d10;color:#f4f6f8}main{width:min(920px,92vw);margin:0 auto;min-height:100vh;display:flex;flex-direction:column}.top{padding:28px 0 18px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:700;letter-spacing:-.02em}.badge{font-size:12px;color:#aab2bd;border:1px solid #252a31;border-radius:999px;padding:7px 11px}.hero{padding:54px 0 28px}.hero h1{font-size:clamp(38px,7vw,68px);line-height:.98;margin:0 0 18px;letter-spacing:-.055em}.hero p{max-width:650px;color:#aab2bd;font-size:17px;line-height:1.6;margin:0}.chat{margin-top:26px;border:1px solid #252a31;background:#111419;border-radius:22px;overflow:hidden;box-shadow:0 20px 70px #0006}.messages{height:460px;overflow:auto;padding:22px}.msg{display:flex;margin:0 0 18px}.bubble{max-width:82%;padding:13px 16px;border-radius:16px;line-height:1.55;white-space:pre-wrap}.user{justify-content:flex-end}.user .bubble{background:#e9edf2;color:#101216;border-bottom-right-radius:5px}.assistant .bubble{background:#191d23;border-bottom-left-radius:5px;color:#e8ebef}.empty{text-align:center;color:#727b87;padding:150px 20px}.composer{display:flex;gap:10px;padding:14px;border-top:1px solid #252a31}.composer textarea{flex:1;resize:none;min-height:48px;max-height:140px;border:1px solid #2a3038;background:#0d0f13;color:#fff;border-radius:14px;padding:13px 14px;font:inherit;outline:none}.composer textarea:focus{border-color:#697381}.send{border:0;border-radius:14px;padding:0 20px;background:#fff;color:#101216;font-weight:700;cursor:pointer}.send:disabled{opacity:.45;cursor:not-allowed}.meta{display:flex;justify-content:space-between;padding:12px 18px;color:#6f7884;font-size:12px;border-top:1px solid #252a31}.footer{margin-top:auto;padding:24px 0;color:#626b77;font-size:12px;display:flex;justify-content:space-between}.dot{display:inline-block;width:7px;height:7px;background:#56d364;border-radius:50%;margin-right:7px}@media(max-width:600px){.hero{padding-top:34px}.messages{height:55vh}.bubble{max-width:92%}.composer{align-items:stretch}.send{padding:0 15px}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="top"><div class="brand">LOCAL OLLAMA</div><div class="badge"><span class="dot"></span>Public AI</div></header>
+  <section class="hero"><h1>Chat with AI.<br>Keep it simple.</h1><p>A lightweight public AI demo powered by Cloudflare Workers AI. Your Mac version continues to run Ollama + Llama 3.1 8B locally.</p></section>
+  <section class="chat">
+    <div id="messages" class="messages"><div class="empty" id="empty">Ask anything to start a conversation.</div></div>
+    <form id="form" class="composer"><textarea id="input" rows="1" maxlength="4000" placeholder="Message the AI…" aria-label="Message"></textarea><button class="send" id="send" type="submit">Send</button></form>
+    <div class="meta"><span id="status">Ready</span><span>Llama 3.2 3B · Workers AI</span></div>
+  </section>
+  <footer class="footer"><span>Local Ollama project</span><span>Local mode stays on your Mac</span></footer>
+</main>
+<script>
+const form=document.getElementById('form'),input=document.getElementById('input'),send=document.getElementById('send'),messagesEl=document.getElementById('messages'),empty=document.getElementById('empty'),statusEl=document.getElementById('status');
+const history=[];
+function add(role,text){empty?.remove();const row=document.createElement('div');row.className='msg '+role;const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=text;row.appendChild(bubble);messagesEl.appendChild(row);messagesEl.scrollTop=messagesEl.scrollHeight;return bubble}
+form.addEventListener('submit',async e=>{e.preventDefault();const text=input.value.trim();if(!text||send.disabled)return;input.value='';add('user',text);history.push({role:'user',content:text});send.disabled=true;statusEl.textContent='Thinking…';const bubble=add('assistant','');try{const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:history})});const data=await r.json();if(!r.ok)throw new Error(data.error||'Request failed');bubble.textContent=data.message;history.push({role:'assistant',content:data.message});statusEl.textContent='Ready'}catch(err){bubble.textContent='Sorry, the AI request failed. Please try again.';history.pop();statusEl.textContent='Error'}finally{send.disabled=false;input.focus();messagesEl.scrollTop=messagesEl.scrollHeight}});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+</script>
+</body>
+</html>
