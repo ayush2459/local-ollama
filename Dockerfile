@@ -1,7 +1,7 @@
 FROM ghcr.io/open-webui/open-webui:ollama
 
 ENV USE_OLLAMA_DOCKER=false \
-    OLLAMA_HOST=0.0.0.0:11434 \
+    OLLAMA_HOST=127.0.0.1:11434 \
     OLLAMA_BASE_URL=http://127.0.0.1:11434 \
     OLLAMA_KEEP_ALIVE=5m \
     OLLAMA_NUM_PARALLEL=1 \
