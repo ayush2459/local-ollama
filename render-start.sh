@@ -1,17 +1,24 @@
 #!/bin/bash
 set -e
 
-# Start the bundled Ollama server in the background.
 export OLLAMA_HOST=127.0.0.1:11434
+export OLLAMA_BASE_URL=http://127.0.0.1:11434
+
+# Start Ollama internally
 ollama serve > /tmp/ollama.log 2>&1 &
 
-# Wait until Ollama is ready.
+# Wait for Ollama to become ready
 until ollama list >/dev/null 2>&1; do
-  sleep 1
+    sleep 1
 done
 
-# Ensure the lightweight test model is available after Render restarts.
-ollama pull llama3.2:1b
+# Download the model in the background.
+# Do NOT block Open WebUI startup.
+(
+    if ! ollama list | grep -q "llama3.2:1b"; then
+        ollama pull llama3.2:1b
+    fi
+) > /tmp/model-pull.log 2>&1 &
 
-# Start Open WebUI using the image's standard startup script.
+# Start Open WebUI immediately on port 8080
 exec bash start.sh
